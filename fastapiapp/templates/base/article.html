@@ -1,0 +1,59 @@
+{% extends "base/has_sidebar.html" %}
+
+{% block head %}
+    {{ super() }}
+    <style>
+        article {
+            max-width: 40rem;
+        }
+        .show_toc_btn,
+        .hide_toc_btn {
+            display: none;
+        }
+        #toc a:not(.show_toc_btn, .hide_toc_btn),
+        #toc .toc_lvl {
+            display: block;
+            padding-bottom: 3px;
+        }
+        .toc_lvl > .toc_lvl {
+            padding-left: 1rem;
+        }
+
+        /* https://stackoverflow.com/questions/10732690/offsetting-an-html-anchor-to-adjust-for-fixed-header */
+        h2::before,
+        h3::before {
+            content: '';
+            display: block;
+            height: 80px;
+            margin-top: -80px;
+            visibility: hidden;
+          }
+    </style>
+{% endblock %}
+
+{% block maincontent %}
+<article class="uk-article" id="article">
+{% markdown %}
+
+{% block article %}
+{% endblock %}
+
+{% endmarkdown %}
+</article>
+{% endblock %}
+
+{% block sidebar %}
+<aside class="uk-container uk-section-xsmall">
+    <p id="dummyAnchor"></p>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/auto-toc-js@1.0.0/dist/toc.min.js"></script>
+<script>
+    // https://github.com/wanls4583/auto-toc-js
+    new Toc({
+	    wrapperId: 'article',
+	    insertId: 'dummyAnchor',
+	    showSerial: true
+	}).createToc();
+</script>
+{% endblock %}

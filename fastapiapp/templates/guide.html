@@ -1,0 +1,54 @@
+{% extends "base/article.html" %}
+
+{% block article %}
+# Guide
+
+## Introduction
+
+This is a simple demo website for all Japanese learner who want to hear
+what words, or phrases actually sound in a native Japanese accent.
+
+## Usage
+
+Type in the word or phrase you want to hear in the search box, and press
+Enter key.
+
+If “Auto Jump” is checked, video clips will automatically jump to the next
+caption or the next video. You can also manually select one if you find some
+interesting clips in the result list on the sidebar.
+
+Use arrow key Left and Right to slighly backward and forward the video for
+number of second that indicated in the “⇌“ field on the top navigation bar.
+You can adjust it for your preference.
+
+## Search Algorithm
+
+### Default Search
+
+Search algorithm is built on top of the [Elasticsearch](https://www.elastic.co/).
+
+The search process is like:
+
+1. Tokenize the input text to “tokens.”
+2. All tokens will be normalized to their base form.
+2. Try match all input tokens as much as possible.
+
+### Exact Match
+
+If you don’t want the tokenization process, you can check “NGRAM” option.
+The search engine will only search those result with exact match as your input.
+
+Give buth search algorithm a try and see which one is better for you.
+
+### Intense Search
+
+Usually we try to find the best match of captions among various videos as much as possible.
+However, you may want to see more match result within a video.
+In that case, you can use the “Intense Search” option.
+
+### Random
+
+Return random result for you. We recommend this option be checked since default order
+is not so useful.
+
+{% endblock %}

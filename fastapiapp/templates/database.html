@@ -1,0 +1,71 @@
+{% extends "base/root.html" %}
+
+{% block head %}
+    {{ super() }}
+    <style>
+        .uk-accordion-title::before {
+            float: left;
+        }
+
+        .uk-accordion-title {
+            font-size: 1rem;
+            border-bottom: 4px solid #333;
+            padding: 0.75em 0px;
+            transition: background 0.3s;
+            border-radius: 6px;
+        }
+
+        .uk-accordion-title:hover {
+            background: #333;
+        }
+
+        .uk-accordion-content a {
+            text-decoration: underline;
+        }
+
+        .uk-accordion-content ol {
+            padding-left: 4em;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="tm-main uk-container uk-section-xsmall">
+    <h1>Database</h1>
+    <p>List all channels source for the website. Total video time in the database: {{ total_duration }}.</p>
+    <ul class="uk-list uk-list-hyphen">
+        {% for channel in channels %}
+            <li class="tm-video">
+                <a href="{{ url_for('read_db_videos', channel_id=channel.id) }}"
+                    class="uk-text-danger">
+                    {{ channel.name }}
+                    <span class="uk-text-muted ">({{ format_datetime(channel.last_sync_date) }})</span>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<script>
+    document.addEventListener('alpine:init', function () {
+        Alpine.data('database', () => ({
+            "channels": {{ channels | tojson(indent=2) }},
+            // channels: [
+            //     {
+            //         "name": "test",
+            //         "thumbnail": "c.thumbnail",
+            //         "last_sync_date": "c.last_sync_date",
+            //         "videos": [
+            //             {
+            //                 "id": "testst",
+            //                 "title": "dddddd",
+            //                 "thumbnail": "dddd",
+            //                 "published_at": "123123",
+            //             }
+            //         ],
+            //     }
+            // ],
+        }));
+    });
+</script>
+{% endblock %}

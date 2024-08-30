@@ -1,0 +1,6 @@
+[tool.pyright]
+venvPath = "."
+venv = "venv"
+
+[tool.ruff.isort]
+force-single-line = true

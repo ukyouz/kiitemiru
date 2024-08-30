@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0; maximum-scale=1.0, user-scalable=0">
+    <meta name="csrf_token" content="{{ csrf_token }}">
+    {% if title %}
+        <title>{{ title }} | 聞いてみ</title>
+    {% else %}
+        <title>聞いてみ</title>
+    {% endif %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.19.2/dist/css/uikit.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.19.2/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.19.2/dist/js/uikit-icons.min.js"></script>
+
+    <script src="//www.youtube.com/player_api"></script>
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <style>
+        :root {
+            --nav-height: 60px;
+            --content-margin: 20px;
+            --mobile-sidebar-height: 0px;
+        }
+
+        html {
+            background-color: #222;
+        }
+
+        html,
+        body.uk-navbar-item,
+        .uk-navbar-nav>li>a,
+        .uk-navbar-toggle,
+        .uk-h1, .uk-h2, .uk-h3, .uk-h4, .uk-h5, .uk-h6,
+        .uk-heading-2xlarge, .uk-heading-3xlarge, .uk-heading-large, .uk-heading-medium, .uk-heading-small, .uk-heading-xlarge,
+        h1, h2, h3, h4, h5, h6 {
+            font-family: Seravek, 'Gill Sans Nova', Ubuntu, Calibri, 'DejaVu Sans', source-sans-pro, sans-serif;
+        }
+
+        h1 {
+            font-size: 1.5em;
+            font-weight: bold;
+            border-bottom: 4px solid #222;
+            padding-bottom: 20px;
+        }
+
+        .uk-navbar-left {
+            flex-grow: 1;
+        }
+
+        .uk-navbar-center:only-child, .uk-navbar-left, .uk-navbar-right {
+            flex-wrap: nowrap;
+        }
+
+        .uk-navbar-item, .uk-navbar-nav > li > a, .uk-navbar-toggle {
+            min-height: var(--nav-height);
+        }
+
+        .uk-background-black {
+            background-color: #000;
+        }
+
+        .tm-navbar-container {
+            box-shadow: #000 0px 0px 16px;
+            z-index: 999;
+        }
+
+        .tm-navbar-container a {
+            transition: .3s ease-in-out;
+            transition-property: all;
+            transition-property: right;
+        }
+
+        .tm-navbar-container .uk-navbar-left > a.logo:hover {
+            color: #999;
+            text-decoration: none;
+        }
+
+        .tm-navbar-container .uk-navbar-nav > li > a {
+            position: relative;
+        }
+
+        .tm-navbar-container .uk-navbar-nav > li > a::before {
+            content: '';
+            display: block;
+            position: absolute;
+            left: 0;
+            right: calc(102% - 0);
+            /* right: 0; */
+            bottom: var(--content-margin);
+            height: 1px;
+            background-color: currentColor;
+        }
+
+        .tm-navbar-container .uk-navbar-nav > li > a:hover::before {
+            right: 0;
+        }
+
+        .tm-navbar-container label {
+            cursor: pointer;
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and IE 11 */
+            user-select: none; /* Standard syntax */
+        }
+
+        .uk-navbar-dropdown {
+            border: 1px solid #f0506e;
+        }
+        .uk-navbar-dropdown-nav > li > label {
+            width: 100%;
+            display: block;
+            color:#999;
+        }
+
+        .tm-main {
+            min-height: calc(100dvh
+                    - var(--nav-height)
+                    - var(--content-margin)
+                    - 3 * var(--content-margin));
+            padding-bottom: calc(3 * var(--content-margin));
+        }
+
+        .uk-display-ruby {
+            display: ruby;
+        }
+
+        .tm-footer {
+            padding-top: 5px;
+            padding-bottom: 5px;
+            position: fixed;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 990;
+        }
+
+        .uk-checkbox[disabled=disabled] {
+            background-color: #222 !important;
+        }
+        label.is-disabled,
+        .uk-checkbox[disabled=disabled] {
+            cursor: default;
+        }
+
+        .uk-light .uk-button-default[disabled] {
+            cursor: default;
+            color: #999;
+        }
+    </style>
+    {% endblock %}
+</head>
+
+<body x-data="mainjs" class="uk-light uk-background-black"
+    @search_term="search_token"
+    @youtube_updated="youtube_ticked($event.detail.time, $event.detail.state)"
+    @youtube_manually_moved="stop_autoplay"
+    >
+    <div class="uk-navbar-container tm-navbar-container uk-sticky uk-sticky-fixed" uk-sticky>
+        <form class="uk-container uk-container-expand uk-background-secondary" action>
+            <nav class="uk-navbar" uk-navbar="offset: -15; mode: click; animation: uk-animation-slide-top-small; close-on-scroll: true">
+                <div class="uk-navbar-left">
+                    <a class="uk-text-bolder logo {{'uk-text-danger' if title is not defined}}" href="/">
+                        <span uk-icon="icon: commenting"></span>
+                        <span class="uk-visible@s">聞いてみ</span>
+                    </a>
+                    <div class="uk-navbar-item uk-hidden@m" style="padding-right: 15px; flex-grow: 1; justify-content: flex-start;">
+                        <div class="uk-inline" style="flex-grow: 1;">
+                            <span class="uk-form-icon" uk-icon="icon: search"></span>
+                            <input x-model="term" @keydown.enter="search_from_input"
+                                class="uk-input uk-form-small uk-border-pill" type="search"
+                                placeholder="単語や短い文を検索してみて！" aria-label="Not clickable icon">
+                        </div>
+                        <div class="uk-display-ruby uk-visible@s uk-margin-small-left">
+                            <label><input class="uk-checkbox" type="checkbox" x-model="is_ngram"> Exact Match</label>
+                        </div>
+                    </div>
+                    <div class="uk-navbar-item uk-visible@m">
+                        <div class="uk-inline">
+                            <span class="uk-form-icon" uk-icon="icon: search"></span>
+                            <input x-model="term" @keydown.enter="search_from_input"
+                                class="uk-input uk-border-pill uk-form-small" type="search"
+                                placeholder="単語や短い文を検索してみて！" aria-label="Not clickable icon">
+                        </div>
+                        <div class="uk-inline">
+                            <label class="uk-margin-small-left"><input class="uk-checkbox" type="checkbox" x-model="is_ngram"> Exact Match</label>
+                            <label class="uk-margin-small-left"><input @change="on_intense_changed" class="uk-checkbox" type="checkbox" x-model="is_intense"> Intense Search</label>
+                            <label class="uk-margin-small-left" :class="is_intense ? 'is-disabled' : ''"><input class="uk-checkbox" type="checkbox" x-model="is_random" :disabled="is_intense"> Random</label>
+                        </div>
+                        <!-- <div class="uk-inline uk-margin-small-left">
+                            <label> ⇌ <input class="uk-input uk-background-black uk-form-width-xsmall uk-form-small"
+                                            type="number" value="5" name="forward_sec" x-model="forward_sec" min="1" max="60"
+                                            style="vertical-align: baseline;"> Seconds</label>
+                        </div> -->
+                    </div>
+                </div>
+                <div class="uk-navbar-right">
+                    <ul class="uk-navbar-nav uk-visible@m">
+                        <!-- <li><a href="{{ url_for('read_plain_html', page_slug='guide') }}" class="{{'uk-text-danger' if title == 'Guide'}}">Guide</a></li> -->
+                        <li><a href="{{ url_for('read_db_channel') }}" class="{{'uk-text-danger' if title == 'Database'}}">Database</a></li>
+                        <!-- <li><a href="./changelog"></a></li> -->
+                    </ul>
+                    <a class="uk-navbar-toggle uk-navbar-toggle-animate" uk-navbar-toggle-icon href="#"></a>
+                    <div class="uk-navbar-dropdown uk-background-secondary uk-padding-small">
+                        <ul class="uk-nav uk-navbar-dropdown-nav">
+                            <!-- <li class="uk-active"><a href="#">Active</a></li> -->
+                            <li class="uk-margin-small-bottom uk-hidden@s">
+                            <label><input class="uk-checkbox" type="checkbox" x-model="is_ngram"> Exact Match</label></li>
+                            <li class="uk-margin-small-bottom uk-hidden@m">
+                                <label><input @change="on_intense_changed" class="uk-checkbox" type="checkbox" x-model="is_intense"> Intense Search</label></li>
+                            <li class="uk-margin-small-bottom uk-hidden@m">
+                                <label><input class="uk-checkbox" type="checkbox" x-model="is_random"> Random</label></li>
+                            <li class="uk-hidden@m"><a href="{{ url_for('read_db_channel') }}" class="{{'uk-text-danger' if title == 'Database'}}">Database</a></li>
+                            <li><a href="{{ url_for('read_plain_html', page_slug='guide') }}" class="{{'uk-text-danger' if title == 'Guide'}}">Guide</a></li>
+                            <li><a href="{{ url_for('read_plain_html', page_slug='special-thanks') }}" class="{{'uk-text-danger' if title == 'special-thanks'}}">Special Thanks</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <script src="/static/iframe.js"></script>
+
+    <div class="tm-footer uk-text-muted uk-background-black">
+        <div class="uk-container">
+            {% block footer %}
+            &copy; 2024 <a href="https://zhung.com.tw/" class="uk-text-muted" target="_blank">zhung</a>
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-49FSB05CT1"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-49FSB05CT1');
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+{% extends "base/root.html" %}
+
+{% block head %}
+    {{ super() }}
+    <style>
+        :root {
+            --sidebar-width: 400px;
+            --mobile-sidebar-height: 160px;
+        }
+
+        .tm-main-has-sidebar {
+            min-height: calc(100dvh
+                    - var(--nav-height)
+                    - var(--content-margin)
+                    - var(--content-margin)
+                    - var(--mobile-sidebar-height));
+        }
+
+        @media (min-width:960px) {
+            .tm-main-has-sidebar {
+                min-height: calc(100dvh
+                            - var(--nav-height)
+                            - var(--content-margin)
+                            - 3 * var(--content-margin));
+            }
+        }
+
+        .tm-main {
+            padding-bottom: calc(var(--mobile-sidebar-height)
+                                + var(--content-margin));
+        }
+
+        .tm-sidebar-right {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            left: 0;
+            height: calc(var(--mobile-sidebar-height));
+            overflow-x: scroll;
+        }
+
+        @media (min-width:960px) {
+            .tm-main {
+                padding-right: calc(var(--sidebar-width)
+                                    + var(--content-margin));
+                padding-bottom: calc(3 * var(--content-margin));
+            }
+
+            .tm-sidebar-right {
+                position: fixed;
+                right: 0;
+                left: auto;
+                top: var(--nav-height);
+                width: var(--sidebar-width);
+                height: calc(100dvh - var(--nav-height));
+                overflow-y: auto;
+                box-sizing: border-box;
+                z-index: 995;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="tm-main tm-main-has-sidebar uk-container uk-section-xsmall">
+    {% block maincontent %}
+    {% endblock %}
+</div>
+<div class="tm-sidebar-right uk-background-secondary">
+    {% block sidebar %}
+    {% endblock %}
+</div>
+
+{% endblock %}

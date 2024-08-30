@@ -1,0 +1,6 @@
+venv
+janome
+.vscode
+.ruff_cache
+__pycache__
+
