@@ -2,6 +2,8 @@
 
 A local Japanese Youtube caption search engine site.
 
+![screenshot](screenshot.png)
+
 ## Requirements
 
 - Python >= 3.11
