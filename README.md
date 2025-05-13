@@ -2,20 +2,6 @@
 
 A local Japanese Youtube caption search engine site.
 
-0. setup database
-
-```bash
-python3 setup_elasticdb.py
-```
-
-1. import caption data by Channel ID
-
-```bash
-python3 import_data.py --cid xxx
-```
-
-2. search any word or phrase you like
-
 ## Requirements
 
 - Python >= 3.11
@@ -26,6 +12,43 @@ python3 import_data.py --cid xxx
     - analysis-icu
     - analysis-kuromoji
 - MariaDB
+
+## Setup
+
+0. add .env file
+
+Add `.env` file to setup environment.
+```ini
+ELASTIC_HOST=http://localhost:9200
+ELASTIC_USERNAME=elasticsearch
+PASSWORD_ELASTIC=
+
+MYSQL_HOST=localhost/<dbname>
+MYSQL_USERNAME=xxx
+MYSQL_PASSWORD=xxxxxxxxxx
+
+YT_API_KEY=KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
+```
+
+1. setup db
+
+```bash
+python3 setup_elasticdb.py
+```
+
+2. import caption data by Channel ID
+
+```bash
+python3 import_data.py xxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+3. search any word or phrase you like
+
+start web server.
+
+```bash
+python3 main.py
+```
 
 ## System
 

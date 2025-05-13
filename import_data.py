@@ -131,6 +131,7 @@ def store_channel(db: Session, es, cid: str, force=False) -> list[str]:
         # last_sync_date=ch_info["snippet"]["publishedAt"],
     )
 
+    ch_cache_file.parent.mkdir(parents=True, exist_ok=True)
     ch_cache_file.write_text(json.dumps(ch_info, indent=4, ensure_ascii=False))
 
     # store videos
@@ -149,6 +150,7 @@ def store_channel(db: Session, es, cid: str, force=False) -> list[str]:
     if len(video_items) == 0:
         return []
 
+    channel_videos_cache_file.parent.mkdir(parents=True, exist_ok=True)
     channel_videos_cache_file.write_text(
         json.dumps(video_items, indent=4, ensure_ascii=False)
     )

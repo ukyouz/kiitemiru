@@ -68,6 +68,6 @@ if __name__ == "__main__":
     VIDEO_ID = sys.argv[1] if len(sys.argv) >= 2 else "yVV08GZ7sm0"
     LANG = sys.argv[2] if len(sys.argv) >= 3 else "ja"
     # txt = retrieve2(VIDEO_ID, LANG)
-    captions = retrieve(VIDEO_ID, languages=[LANG])
-    with open("captions/%s.json" % VIDEO_ID, "w") as fs:
+    captions = retrieve(VIDEO_ID, lang=LANG)
+    with open("youtube/data/captions/%s.json" % VIDEO_ID, "w") as fs:
         fs.write(json.dumps(captions, indent=4, ensure_ascii=False))

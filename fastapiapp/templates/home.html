@@ -212,7 +212,7 @@
         </template>
     </div>
     <ul class="uk-list uk-list-collapse" x-show="status!='init'">
-        <template x-if="view_mode=='view'">
+        <!-- <template x-if="view_mode=='view'"> -->
             <template x-for="(c, index) in captions">
                 <template x-if="index >= current_cap - 10 && index <= current_cap + 10">
                 <li class="tm-captions uk-border-rounded"
@@ -224,8 +224,8 @@
                 </li>
                 </template>
             </template>
-        </template>
-        <template x-if="view_mode=='edit'">
+        <!-- </template> -->
+        <!-- <template x-if="view_mode=='edit'">
             <template x-for="(c, index) in captions">
             <li class="tm-captions uk-border-rounded">
                 <span @click="select_caption(index)" style="display: flex; align-items: baseline; flex-grow: 1">
@@ -236,7 +236,7 @@
                 </span>
             </li>
         </template>
-        </template>
+        </template> -->
     </ul>
 {% endblock %}
 
