@@ -46,7 +46,11 @@ def insert_or_get(db: Session, model, **kwargs):
         return obj
     except sqlalchemy.exc.IntegrityError:
         db.rollback()
-        x = db.query(model).filter_by(**kwargs).first()
+        unique_keys = {
+            c.name: kwargs[c.name]
+            for c in model.__table__.columns if c.unique
+        }
+        x = db.query(model).filter_by(**unique_keys).first()
         assert x is not None
         return x
 
@@ -137,7 +141,7 @@ def store_channel(db: Session, es, cid: str, force=False) -> list[str]:
     # store videos
     channel_videos_cache_file = Path(f"youtube/data/videos/{cid}.json")
     if channel_videos_cache_file.exists():
-        video_items: dict = json.loads(channel_videos_cache_file.read_text())
+        video_items: list = json.loads(channel_videos_cache_file.read_text())
 
         if not force and channel.last_sync_date and video_items:
             if video_items[0]["snippet"]["publishedAt"] <= channel.last_sync_date:
@@ -161,7 +165,28 @@ def store_channel(db: Session, es, cid: str, force=False) -> list[str]:
     else:
         old_vids = []
 
-    videos = []
+    retry_count = 5
+    last_sync_date = ""
+    while retry_count:
+        inserted_vids, err_vids, sync_date = store_videos(video_items, old_vids, channel.ID)
+        old_vids += inserted_vids
+        if sync_date > last_sync_date:
+            last_sync_date = sync_date
+        if not err_vids:
+            break
+        retry_count -= 1
+        print(f"retry {5 - retry_count} / {5}...")
+
+    channel.last_sync_date = last_sync_date
+
+    db.commit()
+
+
+def store_videos(video_items: list, old_vids: list, cid: int) -> tuple[list, list, str]:
+    last_sync_date = "0000-00-00T00:00:00Z"
+
+    inserted_vids = []
+    err_vids = []
     total = len(video_items)
     for i, item in enumerate(video_items):
         if item["id"]["videoId"] in old_vids:
@@ -171,16 +196,22 @@ def store_channel(db: Session, es, cid: str, force=False) -> list[str]:
 
         vid = item["id"]["videoId"]
         print(f"({i + 1}/{total}) storing {vid}...")
-        if not store_caption(es, item["id"]["videoId"]):
+        try:
+            if not store_caption(es, item["id"]["videoId"]):
+                continue
+        except Exception:
+            err_vids.append(vid)
+            print(f"  failed to store caption: {vid}")
             continue
 
         # videos are sorted by date, newest first
-        channel.last_sync_date = snippet["publishedAt"]
+        last_sync_date = snippet["publishedAt"]
+        inserted_vids.append(vid)
 
         try_insert(
             db,
             models.Video,
-            channel_id=channel.ID,
+            channel_id=cid,
             video_id=item["id"]["videoId"],
             title=html.unescape(snippet["title"]),
             thumbnail=snippet["thumbnails"]["medium"]["url"],
@@ -188,9 +219,7 @@ def store_channel(db: Session, es, cid: str, force=False) -> list[str]:
             duration=_yt_duration_to_seconds(details["duration"]) * 1000,
         )
 
-    db.commit()
-
-    return [v.video_id for v in videos]
+    return inserted_vids, err_vids, last_sync_date
 
 
 if __name__ == "__main__":
@@ -213,7 +242,7 @@ if __name__ == "__main__":
         ),
     )
     try:
-        vids = store_channel(db, es, args.cid, args.force)
+        store_channel(db, es, args.cid, args.force)
     finally:
         db.close()
 
